@@ -18,9 +18,6 @@ namespace Decreased_Fall_Damage
 
 			if (Configuration.Enable)
 			{
-#if DEBUG
-				DecreasedFallDamage.Logger.LogWarning("[DEBUG] Patching...");
-#endif
 				new Harmony("bRitch02.valheim.DecreasedFallDamage").PatchAll();
 			}
 			else
@@ -39,7 +36,7 @@ namespace Decreased_Fall_Damage
 		public const string pluginName = "Decreased Fall Damage";
 
 		// Token: 0x04000007 RID: 7
-		public const string pluginVersion = "1.1.0";
+		public const string pluginVersion = "1.2.0";
 
 		// Token: 0x04000008 RID: 8
 		public new static ManualLogSource Logger = new ManualLogSource("Decreased Fall Damage");

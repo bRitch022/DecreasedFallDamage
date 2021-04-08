@@ -19,17 +19,29 @@ namespace Decreased_Fall_Damage
 			}
 		}
 
+		public static bool skillMode
+		{
+			get
+			{
+				return Configuration._skillMode.Value;
+			}
+		}
+
 		// Token: 0x17000002 RID: 2
 		// (get) Token: 0x06000004 RID: 4 RVA: 0x0000211C File Offset: 0x0000031C
-		public static int fallDamage
+		public static float fallDamage
 		{
 			get
 			{
 				return Configuration._fallDamage.Value;
 			}
+			set
+            {
+				Configuration._fallDamage.Value = value;
+            }
 		}
 
-		public static int minFallHeight
+		public static float minFallHeight
 		{
 			get
 			{
@@ -45,7 +57,7 @@ namespace Decreased_Fall_Damage
 
 			Configuration._configFile.Save();
 #if DEBUG
-			DecreasedFallDamage.Logger.LogInfo("Successfully loaded configuration");
+			DecreasedFallDamage.Logger.LogWarning("[DEBUG] Successfully loaded configuration");
 #endif
 		}
 
@@ -54,8 +66,9 @@ namespace Decreased_Fall_Damage
 		{
 			Configuration._configFile = new ConfigFile(Path.Combine(Paths.ConfigPath,"ritchmods.valheim.decreasedfalldamage.cfg"), true);
 			Configuration._enable = Configuration._configFile.Bind<bool>("General", "enable", true, "Description : Enable / disable the mod" + Environment.NewLine + "Values : true; false");
-			Configuration._fallDamage = Configuration._configFile.Bind<int>("General", "fallDamage", 1, "Description : Fall damage rate. Default : 1" + Environment.NewLine + "Values : 0 - 100");
-			Configuration._minFallHeight = Configuration._configFile.Bind<int>("General", "minFallheight", 4, "Description : Height at which fall damage occurs. Default : 1" + Environment.NewLine + "Values : 1 - 100");
+			Configuration._skillMode = Configuration._configFile.Bind<bool>("General", "skillMode", true, "Description : Enable / disable skill mode" + Environment.NewLine + "Values : true; false");
+			Configuration._fallDamage = Configuration._configFile.Bind<float>("General", "fallDamage", 100, "Description : Fall damage rate. Default : 100" + Environment.NewLine + "Values : 0 - 100");
+			Configuration._minFallHeight = Configuration._configFile.Bind<float>("General", "minFallheight", 4, "Description : Height at which fall damage occurs. Default : 4" + Environment.NewLine + "Values : 1 - 100");
 		}
 
 		// Token: 0x06000008 RID: 8 RVA: 0x000022D8 File Offset: 0x000004D8
@@ -67,6 +80,14 @@ namespace Decreased_Fall_Damage
 				DecreasedFallDamage.Logger.LogWarning("Config \"enable\" was reset to default : true (before " + Configuration._enable.Value.ToString() + ")");
 #endif
 				Configuration._enable.Value = true;
+			}
+
+			if (Configuration._skillMode.Value && !Configuration._skillMode.Value)
+			{
+#if DEBUG
+				DecreasedFallDamage.Logger.LogWarning("Config \"skillMode\" was reset to default : true (before " + Configuration._skillMode.Value.ToString() + ")");
+#endif
+				Configuration._skillMode.Value = true;
 			}
 
 			if (Configuration._fallDamage.Value < 0 || Configuration._fallDamage.Value > 100)
@@ -92,10 +113,12 @@ namespace Decreased_Fall_Damage
 		// Token: 0x04000002 RID: 2
 		private static ConfigEntry<bool> _enable;
 
-		// Token: 0x04000003 RID: 3
-		private static ConfigEntry<int> _fallDamage;
+		private static ConfigEntry<bool> _skillMode;
 
-		private static ConfigEntry<int> _minFallHeight;
+		// Token: 0x04000003 RID: 3
+		private static ConfigEntry<float> _fallDamage;
+
+		private static ConfigEntry<float> _minFallHeight;
 	}
 }
 

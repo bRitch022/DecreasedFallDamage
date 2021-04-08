@@ -16,27 +16,34 @@ namespace Decreased_Fall_Damage
 		[HarmonyTranspiler]
 		private static IEnumerable<CodeInstruction> UpdateGroundContact(IEnumerable<CodeInstruction> instructions)
 		{
+			bool patch1_done = false;
+			bool patch2_done = false;
+
 			List<CodeInstruction> list = instructions.ToList<CodeInstruction>();
+
 			for (int i = 0; i < list.Count; i++)
 			{
-				if (list[i].opcode == OpCodes.Ldc_R4 && object.Equals(list[i].operand, 100f))
+				if (list[i].opcode == OpCodes.Ldc_R4 && object.Equals(list[i].operand, 100f) && !patch1_done)
 				{
-#if DEBUG
-					DecreasedFallDamage.Logger.LogWarning("[DEBUG] Patching...");
-#endif
+
 					list[i] = new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(DecreasedFallDamage_Patch), "GetMaxFallDamage", null, null));
+					patch1_done = true;
+#if DEBUG
+					DecreasedFallDamage.Logger.LogWarning("[DEBUG] Patching " + list[i].ToString());
+#endif
 				}
 
 				else if (
 					list[i].opcode == OpCodes.Ldloc_0 &&
 					list[i + 1].opcode == OpCodes.Ldc_R4 &&
-					object.Equals(list[i + 1].operand, 4f))
+					object.Equals(list[i + 1].operand, 4f) &&
+					!patch2_done)
 				{
-#if DEBUG
-					DecreasedFallDamage.Logger.LogWarning("[DEBUG] Patching Next...");
-#endif
 					list[i + 1] = new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(DecreasedFallDamage_Patch), "GetMinFallHeight", null, null));
-
+					patch2_done = true;
+#if DEBUG
+					DecreasedFallDamage.Logger.LogWarning("[DEBUG] Patching " + list[i + 1].ToString());
+#endif
 				}
 			}
 			return list;
@@ -45,12 +52,26 @@ namespace Decreased_Fall_Damage
 		// Token: 0x06000002 RID: 2 RVA: 0x000020E8 File Offset: 0x000002E8
 		private static float GetMaxFallDamage()
 		{
-			return (float)Configuration.fallDamage;
+			if(Configuration.skillMode)
+            {
+				float jumpSkill = Player.m_localPlayer.GetSkills().GetSkill(Skills.SkillType.Jump).m_level;
+				float newFallDamage = Configuration.fallDamage - jumpSkill;
+
+				if(newFallDamage < 0)
+                {
+					newFallDamage = 0;
+                }
+
+				DecreasedFallDamage.Logger.LogInfo("Player fall damage reduced by " + jumpSkill.ToString() + "%" + Environment.NewLine);
+				return newFallDamage;
+			}
+			DecreasedFallDamage.Logger.LogInfo("Player fall damage reduced by " + (100 - Configuration.fallDamage) + "%" + Environment.NewLine);
+			return Configuration.fallDamage;
 		}
 
 		private static float GetMinFallHeight()
 		{
-			return (float)Configuration.minFallHeight;
+			return Configuration.minFallHeight;
 		}
 
 	}
